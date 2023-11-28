@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram import Bot
 
 import app.keyboard as kb
-import app.database.request as req
+import database.request as req
 from app.keyboard import Title_search_cd, Episode_link, PaginationIntitle, PaginationInEpisode
 from config import VIDEO_CHAT_ID
 from .keyboard import inline_kbb_search, inline_kb_lvl_episode, inline_kb_episode

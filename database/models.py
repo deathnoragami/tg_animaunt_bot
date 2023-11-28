@@ -2,22 +2,23 @@ from sqlalchemy import String, Integer, Text, ForeignKey, Boolean, Float
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import mapped_column, relationship
+from fastapi_users.db import SQLAlchemyBaseUserTable
 
 
 class Base(DeclarativeBase, AsyncAttrs):
     pass
 
 
-class User(Base):
+class User(SQLAlchemyBaseUserTable[int], Base):
 
-    __tablename__ = 'users'
+    __tablename__ = 'User'
 
     id = mapped_column(Integer, primary_key=True)
-    tg_id = mapped_column(Integer)
-    is_admin = mapped_column(Boolean, default=False)
+    email = mapped_column(String(255), unique=True)
+    hashed_password = mapped_column(String(255))
 
     def __str__(self) -> str:
-        return self.tg_id
+        return self.email
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -48,7 +49,7 @@ class Title(Base):
     name = mapped_column(String(255))
     url = mapped_column(String(255))
     episodes = relationship('Episode', back_populates='title')
-    description = mapped_column(Text)
+    description = mapped_column(Text, nullable=True)
     image_url = mapped_column(Text)
     match_episode = mapped_column(String(255), nullable=True)
     search_field = mapped_column(String(255), nullable=True)

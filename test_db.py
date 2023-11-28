@@ -1,7 +1,7 @@
-from app.database.sqlite_connection import ENGINE
+from database.sqlite_connection import ENGINE
 from sqlalchemy.orm import sessionmaker
-from app.database.models import Title, Episode
-from app.database.request import AnimeDB
+from database.models import Title, Episode
+from database.request import AnimeDB
 import asyncio
 
 # with sessionmaker(ENGINE)() as session:

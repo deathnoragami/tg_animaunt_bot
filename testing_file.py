@@ -16,9 +16,10 @@ def upload_tg_channel(directory):
     chat_id = 1002020583106
     client.start()
     image = "C:\\Users\\Reidenshi\\Pictures\\test.jpg"
-    msg = client.send_video(chat_id=-chat_id, video=directory, width=1280, height=720, thumb=image)
-    print(msg.video.file_id) # Это и есть айди файла
+    msg = client.send_video(chat_id=-chat_id, video=directory, width=1280, height=720)
+    print(msg.id) # Message ID
     print(f"Загружен в тг {directory}")
+    os.remove(directory)
     client.stop()
 
 
@@ -49,7 +50,7 @@ def download_video_with_sftp():
     ssh.close()
 
 def parse_maunt():
-    link = "https://animaunt.org/11949-devushki-poni-slavnoe-derbi-3.html"
+    link = "https://animaunt.org/11969-tokiyskie-mstiteli-podnebese.html"
     response = requests.get(link)
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -62,14 +63,23 @@ def parse_maunt():
         if 'Эпизоды:' in li_tag.get_text():
             episodes_text = li_tag.get_text().strip()
             numbers = re.findall(r'\d+', li_tag.get_text())
-            if len(numbers) >= 2:
-                second_number = numbers[1] # Число всего серий
-                print(f"Второе число: {second_number}")
+            second_number = numbers[1] # Число всего серий
             break
+    episodes_tag = soup.find_all('li', class_='vis-gray')
+    for li_tag in episodes_tag:
+        if "Тип:" in li_tag.get_text():
+            type_title = li_tag.get_text().strip().split(":")[1]
+            break
+    print(f"Название: {name}"\
+        f"\nКартинка: {image_url}"\
+        f"\nЭпизодов: {second_number}"\
+        f"\nТип: {type_title}")
+            
+
 
 
 
 if __name__ == '__main__':
+    download_video_with_sftp()
     parse_maunt()
-    # download_video_with_sftp()
 

@@ -118,17 +118,19 @@ def inline_kb_episode(
     **kgargs
     ) -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
-    
-    
+    count_pg_adjust = 0
+   
     if from_title:
-        current_page = math.floor(chose_episode/24) + 1
-        all_episode_info = all_episode_info[current_page-1]
+        if page_count > 1:
+            current_page = math.floor(chose_episode/24) + 1
+            all_episode_info = all_episode_info[current_page-1]
         btn_text = all_episode_info[0]
         btn_episode_id = all_episode_info[1]
     else:
         all_episode_info = all_episode_info[current_page-1]
         btn_text = all_episode_info[0]
         btn_episode_id = all_episode_info[1]
+
     
     [
         builder.button(text=t, callback_data=Episode_link(episode_id=c, title_id=title_id, number_episode=int(t)))
@@ -138,19 +140,36 @@ def inline_kb_episode(
     if page_count > 1:
         if current_page == 1:
             builder.button(text='Вперед', callback_data=PaginationInEpisode(page=page_count, title_id=title_id, action="next", current_page=current_page))
+            count_pg_adjust = 1
         elif current_page == page_count:
             builder.button(text='Назад', callback_data=PaginationInEpisode(page=page_count, title_id=title_id, action="back", current_page=current_page))
+            count_pg_adjust = 1
         else:
             builder.button(text='Назад', callback_data=PaginationInEpisode(page=page_count, title_id=title_id, action="back", current_page=current_page))
             builder.button(text='Вперед', callback_data=PaginationInEpisode(page=page_count, title_id=title_id, action="next", current_page=current_page))
+            count_pg_adjust = 2
       
-    if len(btn_text) > 18:
-        builder.adjust(6, 6, 6, len(btn_text)-18, 2)
-    elif len(btn_text) > 12:
-        builder.adjust(6, 6, len(btn_text)-12, 2)
-    elif len(btn_text) > 6:
-        builder.adjust(6, len(btn_text)-6, 2)
+    builder.button(text='К тайтлу', callback_data=Title_search_cd(title_id=str(title_id)))  
+    
+    
+    # TODO: посмотреть дургой метод сокращения кода  
+    if count_pg_adjust != 0:  
+        if len(btn_text) > 18:
+            builder.adjust(6, 6, 6, len(btn_text)-18, count_pg_adjust, 1)
+        elif len(btn_text) > 12:
+            builder.adjust(6, 6, len(btn_text)-12, count_pg_adjust, 1)
+        elif len(btn_text) > 6:
+            builder.adjust(6, len(btn_text)-6, count_pg_adjust, 1)
+        else:
+            builder.adjust(len(btn_text), count_pg_adjust, 1)
     else:
-        builder.adjust(len(btn_text), 2)
+        if len(btn_text) > 18:
+            builder.adjust(6, 6, 6, len(btn_text)-18, 1)
+        elif len(btn_text) > 12:
+            builder.adjust(6, 6, len(btn_text)-12, 1)
+        elif len(btn_text) > 6:
+            builder.adjust(6, len(btn_text)-6, 1)
+        else:
+            builder.adjust(len(btn_text), 1)
         
     return builder.as_markup()

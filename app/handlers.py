@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InputMediaVideo, URLInputFile
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -8,7 +8,7 @@ from aiogram import Bot
 import app.keyboard as kb
 import app.database.request as req
 from app.keyboard import Title_search_cd, Episode_link, PaginationIntitle, PaginationInEpisode
-
+from config import VIDEO_CHAT_ID
 from .keyboard import inline_kbb_search, inline_kb_lvl_episode, inline_kb_episode
 
 router = Router()
@@ -19,7 +19,8 @@ class SearchState(StatesGroup):
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, bot: Bot):
-    await message.answer('Привет.', reply_markup=kb.main)  # TODO: стартовое сообщение
+    await message.answer(text='Привет.', reply_markup=kb.main)  # TODO: стартовое сообщение
+
 
 @router.message(F.text == "Контакты")
 async def cmd_contacts(message: Message):
@@ -51,12 +52,7 @@ async def callback_title(call: CallbackQuery, bot: Bot):
     #TODO: call.data.split(':', 1)[1] это айди тайтла, по нему искать фулл инфу о тайтле
     title = await req.AnimeDB.get_title(int(call.data.split(':', 1)[1]))
     episode_list = await req.AnimeDB.get_episode_all(title.id)
-    print(episode_list)
     page_count = (len(episode_list[0]) - 1) // 12 + 1 
-    id_title = title.id 
-    url = title.url
-    name = title.name
-    desc = title.description
     if page_count > 1:
         episode_divided = []
         for page in range(page_count):
@@ -67,10 +63,10 @@ async def callback_title(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id]) # 
     else:
         episode_divided = episode_list
-    print(episode_divided)
-    await call.message.answer_photo(photo="https://animaunt.org/uploads/posts/2023-06/1687114809_tm.jpg",
-                                    caption=f"<b>Название:</b> {name}\n\n<b>Описание:</b> {desc}\n\nСмотреть на сайте {url}",
-                                    reply_markup=inline_kb_lvl_episode(title_id=int(id_title), 
+    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b> {title.description}\n\nСмотреть на сайте {title.url}"
+    await call.message.answer_photo(photo=title.image_url,
+                                    caption=caption,
+                                    reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 
                                                                     page_count=page_count,
                                                                     all_episode_info=episode_divided,
                                                                     current_page=page_count                                                              
@@ -108,7 +104,6 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
     data = call.data.split(":")
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     episode = await req.AnimeDB.get_episode(int(data[1]))
-    video = episode.video_link
     episode_list = await req.AnimeDB.get_episode_all(int(data[2]))
     title = await req.AnimeDB.get_title(int(data[2])) # TODO: Передать название тайтла в калбеках
     page_count = (len(episode_list[0]) - 1) // 24 + 1 # до 24 серий.
@@ -123,12 +118,18 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
     else:
         episode_divided = episode_list
     caption = f"Ты смотришь {title.name} - {episode.number} серию!\n\n"
+    # await bot.copy_message(chat_id=message.chat.id, from_chat_id=VIDEO_CHAT_ID, message_id=49, caption="Серия такая, и то такое вот")
     # image = URLInputFile("https://fon.litrelax.ru/uploads/posts/2023-01/1673218763_foni-club-p-oboi-anime-dozhd-4k-1.jpg", filename="prev.jpg")
-    await call.message.answer_video(caption=caption, video=video, reply_markup=inline_kb_episode(page_count=page_count,
-                                                                                                 chose_episode=int(data[3]),
-                                                                                                 all_episode_info=episode_divided,
-                                                                                                 from_title=True, 
-                                                                                                 title_id=int(data[2]))) # TODO: написать функцию кнопкок для видео
+    
+    await bot.copy_message(chat_id=call.message.chat.id, 
+                           from_chat_id=VIDEO_CHAT_ID, 
+                           caption=caption,
+                           message_id=episode.video_msg_id, 
+                           reply_markup=inline_kb_episode(page_count=page_count,
+                                                            chose_episode=int(data[3]),
+                                                            all_episode_info=episode_divided,
+                                                            from_title=True, 
+                                                            title_id=int(data[2])))                                                                                  
     
 @router.callback_query(PaginationInEpisode.filter())
 async def change_episode_episode(call: CallbackQuery, bot: Bot):

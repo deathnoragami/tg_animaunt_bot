@@ -62,8 +62,9 @@ class AnimeDB(BaseDB):
         with cls._SESSION() as session:
             title = Title(**kwargs)
             session.add(title)
+            title.update_search_field()
             session.commit()
-        return title.id
+            return title.id
 
     @classmethod
     async def add_episode(cls, **kwargs):

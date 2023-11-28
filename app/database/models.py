@@ -30,7 +30,7 @@ class Episode(Base):
 
     id = mapped_column(Integer, primary_key=True)
     number = mapped_column(Integer)
-    video_link = mapped_column(String(255))
+    video_msg_id = mapped_column(String(255))
     title_id = mapped_column(ForeignKey('Title.id'))
     title = relationship('Title', back_populates='episodes')
 
@@ -50,6 +50,8 @@ class Title(Base):
     url = mapped_column(String(255))
     episodes = relationship('Episode', back_populates='title')
     description = mapped_column(Text)
+    image_url = mapped_column(Text)
+    match_episode = mapped_column(String(255), nullable=True)
     search_field = mapped_column(String(255), nullable=True)
 
     def update_search_field(self):

@@ -45,14 +45,7 @@ class AnimeDB(BaseDB):
             return [all_number, all_id]
         
     @classmethod
-    async def get_episode(cls, get_all: bool = False, title_id: int = 1, episode_id: int = 1): # TODO: норм идея или нет?
-        if get_all:
-            with cls._SESSION() as session:
-                episodes = session.query(Episode).filter(Episode.title_id == title_id).all()
-                all_number = [str(i.number) for i in episodes]
-                all_id = [str(i.id) for i in episodes]
-                return [all_number, all_id]
-        else:
-            with cls._SESSION() as session:
-                episode = session.query(Episode).filter(Episode.id == episode_id).first()
-                return episode
+    async def get_episode(cls, episode_id: int): # TODO: норм идея или нет?
+        with cls._SESSION() as session:
+            episode = session.query(Episode).filter(Episode.id == episode_id).first()
+            return episode

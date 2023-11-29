@@ -54,6 +54,7 @@ class Title(Base):
     match_episode = mapped_column(String(255), nullable=True)
     search_field = mapped_column(String(255), nullable=True)
     last_episode = mapped_column(Float, nullable=True)
+    complete = mapped_column(Boolean, nullable=True, default=False)
 
     def update_search_field(self):
         self.search_field = self.name.lower()

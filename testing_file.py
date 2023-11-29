@@ -10,6 +10,7 @@ import re
 from database.request import AnimeDB
 import asyncio
 from string import ascii_letters
+from parse.server_parser import ServerParser
 
 
 async def upload_tg_channel(directory, title_id: int, number: int):
@@ -97,5 +98,9 @@ def parse_maunt():
 
 
 if __name__ == '__main__':
-    title_id = parse_maunt()
-    asyncio.run(download_video_with_sftp(title_id))
+    # title_id = parse_maunt()
+    # asyncio.run(download_video_with_sftp(title_id))
+
+    # parser = ServerParser('https://animaunt.org/11363-helk.html', '/home/video/mp4/Хельк | Helck')
+    # asyncio.run(parser.parse_maunt())
+    # asyncio.run(parser.download_video_with_sftp())

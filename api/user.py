@@ -96,7 +96,7 @@ async def get_jwt_strategy() -> JWTStrategy:
 
 cookie_transport = CookieTransport(
     cookie_max_age=None,
-    cookie_name='LateNightWaifu'
+    cookie_name='AniMaunt'
 )
 auth_backend = AuthenticationBackend(
     name="jwt",

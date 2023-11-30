@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  redis_broker:
+    image: redis:7.2.3
+    hostname: redis_broker
+    container_name: redis_broker
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_broker_volume:/data
+    env_file: ./.env
+volumes:
+  redis_broker_volume:

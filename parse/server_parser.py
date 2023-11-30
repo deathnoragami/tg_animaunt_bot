@@ -15,6 +15,7 @@ import requests
 import base64
 import re
 from database.request import AnimeDB
+from database.models import Title
 import asyncio
 from string import ascii_letters
 from paramiko.sftp_attr import SFTPAttributes
@@ -22,7 +23,7 @@ from paramiko.sftp_attr import SFTPAttributes
 
 class ServerParser:
 
-    CLIENT = Client("my_account", API_ID, API_HASH)
+    CLIENT = Client("my_account", int(API_ID), API_HASH)
     CHAT_ID = int(VIDEO_CHAT_ID)
 
     def __init__(self, url: str, remote_path: str) -> None:
@@ -30,12 +31,13 @@ class ServerParser:
         self.remote_path = remote_path
         self.parsed_title_id: int = None
 
-    async def parse_maunt(self) -> int:
+    async def parse_maunt(self) -> Title:
         response = requests.get(self.url)
         soup = BeautifulSoup(response.text, 'html.parser')
         name = soup.find("h1").text.strip()  # Название релища
         image_url = "https://animaunt.org" + soup.find("img").get("src")  # Ссылка на картинку
         image_data = requests.get(image_url).content
+        image_base64 = base64.b64encode(image_data).decode('utf-8') # Это бинарный вид
         episodes_tag = soup.find_all('li', class_='vis-clear')
         for li_tag in episodes_tag:
             if 'Эпизоды:' in li_tag.get_text():
@@ -52,10 +54,13 @@ class ServerParser:
         kwargs = {
             'name': name,
             'url': self.url,
+            'remote_path': self.remote_path,
             'image_url': image_url,
             'match_episode': second_number,
         }
-        self.parsed_title_id = await AnimeDB.add_title(**kwargs)
+        title = await AnimeDB.add_title(**kwargs)
+        self.parsed_title_id = title.id
+        return title
 
     async def upload_tg_channel(
             self, directory: str, number: int
@@ -77,7 +82,7 @@ class ServerParser:
         }
         await AnimeDB.add_episode(**kwargs)
 
-    async def download_video_with_sftp(self):
+    async def download_video_with_sftp(self) -> None:
         port = 22
         local_path = 'video'
         os.makedirs(local_path, exist_ok=True)
@@ -103,10 +108,11 @@ class ServerParser:
                 )[0].strip(ascii_letters))
                 if number == next_number:
                     continue
-            except ValueError:
+            except (ValueError, IndexError):
                 pass
             sftp.get(remote_file_path, local_file_path)
             print(f'{file} скачан успешно.')
             await self.upload_tg_channel(local_file_path, number)
+            await AnimeDB.update_title(self.parsed_title_id, number)
         sftp.close()
         ssh.close()

@@ -11,19 +11,51 @@ class BaseDB:
 class AnimeDB(BaseDB):
 
     @classmethod
+    async def get_uncompleted(cls) -> list[Title]:
+        with cls._SESSION() as session:
+            titles = session.query(Title).options(
+                load_only(
+                    Title.id,
+                    Title.name,
+                    Title.remote_path,
+                    Title.match_episode,
+                    Title.last_episode,
+                )
+            ).filter(Title.complete.is_(False)).all()
+            return titles
+
+    @classmethod
     async def get_title(cls, title_id: int) -> Title:
         with cls._SESSION() as session:
             title = session.query(Title).options(
                 load_only(
                     Title.id,
                     Title.name,
+                    Title.remote_path,
                     Title.match_episode,
+                    Title.last_episode,
                     Title.description,
                     Title.url,
                     Title.image_url,
                     )
                 ).filter(Title.id == title_id).first()
             return title
+
+    @classmethod
+    async def update_title(cls, title_id: int, number: int) -> None:
+        with cls._SESSION() as session:
+            title = session.query(Title).options(
+                load_only(
+                    Title.id,
+                    Title.match_episode,
+                    Title.last_episode,
+                    Title.complete,
+                    )
+                ).filter(Title.id == title_id).first()
+            title.last_episode = number
+            if title.last_episode == float(title.match_episode):
+                title.complete = True
+            session.commit()
 
     @classmethod
     async def search_title(cls, query: str) -> list[list[str], list[str]]:
@@ -58,13 +90,14 @@ class AnimeDB(BaseDB):
             return episode
 
     @classmethod
-    async def add_title(cls, **kwargs) -> int:
+    async def add_title(cls, **kwargs) -> Title:
         with cls._SESSION() as session:
             title = Title(**kwargs)
             session.add(title)
             title.update_search_field()
             session.commit()
-            return title.id
+            title = await cls.get_title(title.id)
+            return title
 
     @classmethod
     async def add_episode(cls, **kwargs):

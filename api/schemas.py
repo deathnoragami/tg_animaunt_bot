@@ -1,4 +1,4 @@
-from pydantic import EmailStr
+from pydantic import EmailStr, BaseModel
 from fastapi_users import schemas
 from fastapi_users.schemas import CreateUpdateDictModel, PYDANTIC_V2
 from pydantic import ConfigDict
@@ -24,3 +24,11 @@ class UserCreate(CreateUpdateDictModel):
 
 class UserUpdate(schemas.BaseUserUpdate):
     pass
+
+
+class Title(BaseModel):
+
+    id: int
+    name: str
+    url: str
+    remote_path: str

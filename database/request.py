@@ -11,19 +11,82 @@ class BaseDB:
 class AnimeDB(BaseDB):
 
     @classmethod
+    async def add_title(cls, **kwargs) -> Title:
+        with cls._SESSION() as session:
+            title = Title(**kwargs)
+            session.add(title)
+            title.update_search_field()
+            session.commit()
+            title = await cls.get_title(title.id)
+            return title
+
+    @classmethod
+    async def get_uncompleted(cls) -> list[Title]:
+        with cls._SESSION() as session:
+            titles = session.query(Title).options(
+                load_only(
+                    Title.id,
+                    Title.name,
+                    Title.remote_path,
+                    Title.url,
+                    Title.match_episode,
+                    Title.last_episode,
+                )
+            ).filter(Title.complete.is_(False)).all()
+            return titles
+
+    @classmethod
     async def get_title(cls, title_id: int) -> Title:
         with cls._SESSION() as session:
             title = session.query(Title).options(
                 load_only(
                     Title.id,
                     Title.name,
+                    Title.remote_path,
                     Title.match_episode,
+                    Title.last_episode,
+                    Title.last_update,
                     Title.description,
                     Title.url,
                     Title.image_url,
-                    )
+                )
+            ).filter(Title.id == title_id).first()
+            return title
+
+    @classmethod
+    async def get_title_for_parser(cls, title_id: int) -> Title:
+        with cls._SESSION() as session:
+            title = session.query(Title).options(
+                load_only(
+                    Title.id,
+                    Title.match_episode,
+                    Title.last_episode,
+                    Title.last_update,
+                    ),
+                joinedload(Title.episodes).load_only(
+                        Episode.id, Episode.number, Episode.video_msg_id
+                    ),
                 ).filter(Title.id == title_id).first()
             return title
+
+    @classmethod
+    async def update_title(cls, title_id: int, number: int, last_update) -> None:
+        with cls._SESSION() as session:
+            title = session.query(Title).options(
+                load_only(
+                    Title.id,
+                    Title.match_episode,
+                    Title.last_episode,
+                    Title.last_update,
+                    Title.complete,
+                    )
+                ).filter(Title.id == title_id).first()
+            if number:
+                title.last_episode = number
+            title.last_update = last_update
+            if title.last_episode == float(title.match_episode):
+                title.complete = True
+            session.commit()
 
     @classmethod
     async def search_title(cls, query: str) -> list[list[str], list[str]]:
@@ -58,18 +121,16 @@ class AnimeDB(BaseDB):
             return episode
 
     @classmethod
-    async def add_title(cls, **kwargs) -> int:
-        with cls._SESSION() as session:
-            title = Title(**kwargs)
-            session.add(title)
-            title.update_search_field()
-            session.commit()
-            return title.id
-
-    @classmethod
-    async def add_episode(cls, **kwargs):
+    async def add_episode(cls, **kwargs) -> None:
         with cls._SESSION() as session:
             kwargs['title'] = session.get(Title, kwargs.pop('title_id'))
             episode = Episode(**kwargs)
             session.add(episode)
+            session.commit()
+
+    @classmethod
+    async def update_episode(cls, episode_id: int, video_msg_id: str) -> None:
+        with cls._SESSION() as session:
+            episode = session.get(Episode, episode_id)
+            episode.video_msg_id = video_msg_id
             session.commit()

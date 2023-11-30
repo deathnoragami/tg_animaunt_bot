@@ -10,3 +10,5 @@ up:
 	docker-compose up -d
 celery:
 	celery -A worker.tasks:worker worker -l info --pool=solo
+beat:
+	celery -A worker.tasks:worker beat

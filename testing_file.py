@@ -11,6 +11,7 @@ from database.request import AnimeDB
 import asyncio
 from string import ascii_letters
 from parse.server_parser import ServerParser
+from worker.tasks import update_parser
 
 
 async def upload_tg_channel(directory, title_id: int, number: int):
@@ -98,6 +99,6 @@ def parse_maunt():
 
 
 if __name__ == '__main__':
-    # title_id = parse_maunt()
-    # asyncio.run(download_video_with_sftp(title_id))
-    print(asyncio.run(AnimeDB.get_uncompleted()))
+    update_parser()
+    # parser = ServerParser('https://animaunt.org/10591-rukovodstvo-soten-demonov-3.html', '/home/video/mp4/Руководство сотен демонов 3 | Bai Yao Pu 3rd Season')
+    # asyncio.run(parser.update_parser())

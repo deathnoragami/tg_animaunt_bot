@@ -48,6 +48,7 @@ class Title(Base):
     id = mapped_column(Integer, primary_key=True)
     name = mapped_column(String(255))
     url = mapped_column(String(255))
+    remote_path = mapped_column(String(255), nullable=True)
     episodes = relationship('Episode', back_populates='title')
     description = mapped_column(Text, nullable=True)
     image_url = mapped_column(Text)

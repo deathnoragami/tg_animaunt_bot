@@ -1,3 +1,4 @@
+import time
 from celery import Celery
 from celery.schedules import crontab
 from database.request import AnimeDB
@@ -18,20 +19,25 @@ worker.conf.task_track_started = True
 worker.conf.beat_schedule = {
     'check_for_updates': {
         'task': 'worker.tasks.update_parser',
-        'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute='*/5'),
     },
 }
 
 
-@worker.task
+# @worker.task
+# def upload_episodes(url: str, remote_path: str, title_id: int):
+#     server_parser = ServerParser(url, remote_path)
+#     server_parser.parsed_title_id = title_id
+#     loop = asyncio.get_event_loop()
+#     loop.run_until_complete(server_parser.download_video_with_sftp())
+
 def upload_episodes(url: str, remote_path: str, title_id: int):
     server_parser = ServerParser(url, remote_path)
     server_parser.parsed_title_id = title_id
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(server_parser.download_video_with_sftp())
+    asyncio.run(server_parser.download_video_with_sftp())
 
 
-@worker.task
+# @worker.task
 def update_parser():
     loop = asyncio.get_event_loop()
     titles = loop.run_until_complete(AnimeDB.get_uncompleted())

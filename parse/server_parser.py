@@ -137,35 +137,27 @@ class ServerParser:
             file = file_attr.filename
             if file.lower() == 'trailer.mp4':
                 continue
-
-            upload_time = dt.utcfromtimestamp(
-                file_attr.st_mtime
-            ).strftime('%Y-%m-%d %H:%M:%S')
-            print(f"Время загрузки {file}: {upload_time}")
-
             title = await AnimeDB.get_title_for_parser(self.parsed_title_id)
             last_update = dt.fromtimestamp(file_attr.st_mtime)
             uploaded_episodes = {float(i.number): i.id for i in title.episodes}
-            if last_update > title.last_update:
-                print('Нужен апдейт')
-                remote_file_path = f'{self.remote_path}/{file}'
-                local_file_path = f'{self.LOCAL_PATH}/{file}'
-                number = float(os.path.splitext(file)[0].strip(ascii_letters))
-                sftp.get(remote_file_path, local_file_path)
-                print(f'{file} скачан успешно.')
-                print(number)
-                print(uploaded_episodes)
-                if number in uploaded_episodes:
-                    print('Нужен апдейт эпизода')
-                    key = 'Update'
-                    episode_id = uploaded_episodes[number]
-                    number = None
-                else:
-                    key = 'Add'
-                    episode_id = None
-                    number = number
-                await self.upload_tg_channel(local_file_path, number, key, episode_id)
-                last_update = dt.fromtimestamp(file_attr.st_mtime)
-                await AnimeDB.update_title(self.parsed_title_id, number, last_update)
+            try:
+                if last_update > title.last_update:
+                    remote_file_path = f'{self.remote_path}/{file}'
+                    local_file_path = f'{self.LOCAL_PATH}/{file}'
+                    number = float(os.path.splitext(file)[0].strip(ascii_letters))
+                    sftp.get(remote_file_path, local_file_path)
+                    if number in uploaded_episodes:
+                        key = 'Update'
+                        episode_id = uploaded_episodes[number]
+                        number = None
+                    else:
+                        key = 'Add'
+                        episode_id = None
+                        number = number
+                    await self.upload_tg_channel(local_file_path, number, key, episode_id)
+                    last_update = dt.fromtimestamp(file_attr.st_mtime)
+                    await AnimeDB.update_title(self.parsed_title_id, number, last_update)
+            except TypeError:
+                pass
         sftp.close()
         ssh.close()

@@ -1,5 +1,5 @@
 import time
-from worker.tasks import update_parser
+from parse.tasks import update_parser
 
 if __name__ == '__main__':
     while True:

@@ -17,7 +17,7 @@ from database.request import AnimeDB
 from database.models import Title
 from string import ascii_letters
 from paramiko.sftp_attr import SFTPAttributes
-from settings import VIDEO_ROOT
+from config import VIDEO_ROOT
 from datetime import datetime as dt
 
 

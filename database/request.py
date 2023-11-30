@@ -1,4 +1,4 @@
-from .sqlite_connection import ENGINE
+from .psycopg2_connection import ENGINE
 from sqlalchemy.orm import sessionmaker, joinedload, load_only
 from .models import Episode, Title
 

@@ -76,7 +76,7 @@ async def callback_title(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id]) # 
     else:
         episode_divided = episode_list
-    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b> {title.description}\n\nСмотреть на сайте {title.url}"
+    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>\n\nСмотреть на сайте {title.url}"
     await call.message.answer_photo(photo=title.image_url,
                                     caption=caption,
                                     reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 
@@ -130,7 +130,7 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id])
     else:
         episode_divided = episode_list
-    caption = f"Ты смотришь {title.name} - {episode.number} серию!\n\n"
+    caption = f"{title.name} - {episode.number} серия.\n\n"
     # await bot.copy_message(chat_id=message.chat.id, from_chat_id=VIDEO_CHAT_ID, message_id=49, caption="Серия такая, и то такое вот")
     # image = URLInputFile("https://fon.litrelax.ru/uploads/posts/2023-01/1673218763_foni-club-p-oboi-anime-dozhd-4k-1.jpg", filename="prev.jpg")
     
@@ -139,7 +139,7 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
                            caption=caption,
                            message_id=episode.video_msg_id, 
                            reply_markup=inline_kb_episode(page_count=page_count,
-                                                            chose_episode=int(data[3]),
+                                                            chose_episode=data[3],
                                                             all_episode_info=episode_divided,
                                                             from_title=True, 
                                                             title_id=int(data[2])))                                                                                  

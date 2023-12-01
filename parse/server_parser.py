@@ -61,6 +61,13 @@ class ServerParser:
                 type_title = li_tag.get_text().strip().split(":")[1]
                 break
         discription = soup.find('div', id='fdesc').text.strip()
+        while len(discription) > 800:
+            last_period_index = discription.rfind('.')
+            if last_period_index == -1:
+                discription = discription[:750]
+            else:
+                discription = discription[:last_period_index]
+
         kwargs = {
             'name': name,
             'url': self.url,

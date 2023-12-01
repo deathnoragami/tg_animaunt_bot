@@ -27,10 +27,11 @@ class ServerParser:
     CHAT_ID = int(VIDEO_CHAT_ID)
     LOCAL_PATH = VIDEO_ROOT
     PORT = 22  # Убрать в енв
+    REMOTE_DIR = '/home/video/mp4/'
 
     def __init__(self, url: str, remote_path: str) -> None:
         self.url = url
-        self.remote_path = '/home/video/mp4/' + remote_path
+        self.remote_path = remote_path
         self.parsed_title_id: int = None
         os.makedirs(self.LOCAL_PATH, exist_ok=True)
 
@@ -98,6 +99,7 @@ class ServerParser:
     async def download_video_with_sftp(self) -> None:
         ssh = await self.__ssh_connect()
         sftp = ssh.open_sftp()
+        sftp.chdir(self.REMOTE_DIR)
         files_with_attributes = sftp.listdir_attr(self.remote_path)
         files_sorted_by_filename = sorted(
             files_with_attributes, key=lambda x: x.filename
@@ -129,6 +131,7 @@ class ServerParser:
     async def update_parser(self) -> None:
         ssh = await self.__ssh_connect()
         sftp = ssh.open_sftp()
+        sftp.chdir(self.REMOTE_DIR)
         files_with_attributes = sftp.listdir_attr(self.remote_path)
         files_sorted_by_st_mtime = sorted(
             files_with_attributes, key=lambda x: x.st_mtime
@@ -145,7 +148,9 @@ class ServerParser:
                 if last_update > title.last_update:
                     remote_file_path = f'{self.remote_path}/{file}'
                     local_file_path = f'{self.LOCAL_PATH}/{file}'
-                    number = float(os.path.splitext(file)[0].strip(ascii_letters))
+                    number = float(
+                        os.path.splitext(file)[0].strip(ascii_letters)
+                    )
                     sftp.get(remote_file_path, local_file_path)
                     if number in uploaded_episodes:
                         key = 'Update'

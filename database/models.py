@@ -29,7 +29,7 @@ class Episode(Base):
     __tablename__ = 'Episode'
 
     id = mapped_column(Integer, primary_key=True)
-    number = mapped_column(Integer, nullable=True)
+    number = mapped_column(Float, nullable=True)
     video_msg_id = mapped_column(String(255))
     title_id = mapped_column(ForeignKey('Title.id'))
     title = relationship('Title', back_populates='episodes')

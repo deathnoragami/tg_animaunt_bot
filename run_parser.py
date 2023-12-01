@@ -1,4 +1,5 @@
 import time
+from config import UPDATE_PARSER_SLLEP_TIME
 from parse.tasks import update_parser
 
 if __name__ == '__main__':
@@ -8,4 +9,4 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         finally:
-            time.sleep(5 * 60)
+            time.sleep(UPDATE_PARSER_SLLEP_TIME * 60)

@@ -76,7 +76,7 @@ async def callback_title(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id]) # 
     else:
         episode_divided = episode_list
-    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>\n\nСмотреть на сайте {title.url}"
+    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>{title.description}\n\nСмотреть на сайте {title.url}"
     await call.message.answer_photo(photo=title.image_url,
                                     caption=caption,
                                     reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 

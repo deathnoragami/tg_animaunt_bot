@@ -1,6 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto
-from aiogram.filters import CommandStart
+from aiogram.types import Message, CallbackQuery
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram import Bot
@@ -19,6 +19,7 @@ class SearchState(StatesGroup):
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, bot: Bot):
+    text = f'Тут нужно ввести приветственный текст'
     await message.answer(text='Привет.', reply_markup=kb.main)  # TODO: стартовое сообщение
 
 
@@ -26,24 +27,36 @@ async def cmd_start(message: Message, bot: Bot):
 async def cmd_contacts(message: Message):
     await message.answer('Бот был создан Долбаебами.')
 
-@router.message(F.text.lower() == "поиск")
+
+@router.message(Command("find"))
+@router.message(F.text.lower() == "🔍️поиск")
 async def search_btn(message: Message, state=FSMContext):
-    await message.answer('Введите запрос')
+    await message.answer(f"🔍️Введите запрос\n\n" \
+                        f"Пример:\n<code>стоун</code>\n<code>Магическая 2</code>")
     await state.set_state(SearchState.WaitingForInput)
 
 
+
 @router.message(SearchState.WaitingForInput)
-async def search_input(message: Message, state=FSMContext):
+async def search_input(message: Message, bot: Bot, state=FSMContext, ):
     await state.update_data(WaitingForInput=message.text)
     msg = await state.get_data()
+    await bot.delete_message(chat_id=message.chat.id, message_id=int(message.message_id)-1)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     title = await req.AnimeDB.search_title(msg['WaitingForInput'])
-    await message.answer("Результат:",
-                         reply_markup=inline_kbb_search(
-                             text=title[0],
-                             callback_data=title[1]
-                             )
-                         )  # TODO reply_markup Переделать на то что было найдено
-    await state.clear()
+    if len(title[0]) == 0:
+        await message.answer(text=f'По вашему запросу <b>"{message.text}"</b> ничего не найдено'\
+                                  f'\nПоиск заново /find')
+        await state.clear()
+    else:
+        await message.answer(f"🤔Вот что я нашел по твоему запросу:"\
+                             f"\n<b>Отменить выбор</b> /start, <b>поиск заново</b> /find",
+                            reply_markup=inline_kbb_search(
+                                text=title[0],
+                                callback_data=title[1]
+                                )
+                            )
+        await state.clear()
 
 
 @router.callback_query(Title_search_cd.filter())

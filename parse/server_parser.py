@@ -30,7 +30,7 @@ class ServerParser:
 
     def __init__(self, url: str, remote_path: str) -> None:
         self.url = url
-        self.remote_path = remote_path
+        self.remote_path = '/home/video/mp4/' + remote_path
         self.parsed_title_id: int = None
         os.makedirs(self.LOCAL_PATH, exist_ok=True)
 
@@ -59,13 +59,14 @@ class ServerParser:
             if "Тип:" in li_tag.get_text():
                 type_title = li_tag.get_text().strip().split(":")[1]
                 break
-        # добавить description
+        discription = soup.find('div', id='fdesc').text.strip()
         kwargs = {
             'name': name,
             'url': self.url,
             'remote_path': self.remote_path,
             'image_url': image_url,
             'match_episode': second_number,
+            'description': discription,
         }
         title = await AnimeDB.add_title(**kwargs)
         self.parsed_title_id = title.id

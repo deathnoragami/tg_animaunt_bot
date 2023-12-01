@@ -31,7 +31,7 @@ class PaginationInEpisode(CallbackData, prefix='pagination_in_episode'):
 
 main = ReplyKeyboardMarkup(keyboard=[
     [
-        KeyboardButton(text='Поиск'),
+        KeyboardButton(text='🔍️Поиск'),
         KeyboardButton(text='Контакты')
     ], 
     [
@@ -60,7 +60,7 @@ def inline_kbb_search(
         for t, c in zip(text, callback_data)
 
     ]
-    builder.button(text='Отмена', callback_data='cansel')
+    # builder.button(text='Отмена', callback_data='cansel')
     builder.adjust(*sizes)
     return builder.as_markup(**kgargs)
 

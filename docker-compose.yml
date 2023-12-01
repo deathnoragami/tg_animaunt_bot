@@ -7,6 +7,7 @@ services:
     container_name: database
     volumes:
       - bot_database_volume:/var/lib/postgresql/data/
+      - ./dump:/dump/
     ports:
       - 5432:5432
     env_file: ./.env

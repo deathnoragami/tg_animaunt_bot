@@ -48,7 +48,6 @@ paramiko==3.3.1
 passlib==1.7.4
 prometheus-client==0.19.0
 prompt-toolkit==3.0.41
-psycopg2==2.9.9
 pyaes==1.6.1
 pycparser==2.21
 pydantic==2.5.2

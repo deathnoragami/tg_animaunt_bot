@@ -111,7 +111,7 @@ async def change_episode_title(call: CallbackQuery):
                                                                             all_episode_info=episode_divided
                                                                             ))
 
-    
+
 @router.callback_query(Episode_link.filter())
 async def callback_episode(call: CallbackQuery, bot: Bot):
     data = call.data.split(":")
@@ -130,7 +130,7 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id])
     else:
         episode_divided = episode_list
-    caption = f"{title.name} - {episode.number} серия.\n\n"
+    caption = f"{title.name} - {episode.caption}.\n\n"
     # await bot.copy_message(chat_id=message.chat.id, from_chat_id=VIDEO_CHAT_ID, message_id=49, caption="Серия такая, и то такое вот")
     # image = URLInputFile("https://fon.litrelax.ru/uploads/posts/2023-01/1673218763_foni-club-p-oboi-anime-dozhd-4k-1.jpg", filename="prev.jpg")
     

@@ -1,0 +1,6 @@
+venv/
+Dockerfile
+Makefile
+docker-compose.yaml
+LICENSE
+README.md

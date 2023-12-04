@@ -8,3 +8,5 @@ migrate:
 	alembic upgrade head
 up:
 	docker-compose up -d
+st:
+	streamlit run api_ui_main.py

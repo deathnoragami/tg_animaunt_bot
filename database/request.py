@@ -111,8 +111,9 @@ class AnimeDB(BaseDB):
         with cls._SESSION() as session:
             episodes = session.query(Episode).options(
                 load_only(Episode.number, Episode.id)
-                ).filter(Episode.title_id == title_id).all()
-            # all_number = [str(i.number) for i in episodes]
+                ).filter(
+                    Episode.title_id == title_id
+                ).order_by(Episode.id).all()
             all_id = [str(i.id) for i in episodes]
             all_view_number = [i.view_number for i in episodes]
             return [all_view_number, all_id]

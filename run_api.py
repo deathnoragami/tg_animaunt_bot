@@ -1,8 +1,10 @@
 import uvicorn
 from loguru import logger
 
+
+logger.add('BotLOG.log', encoding='utf-8')
+
 if __name__ == '__main__':
-    logger.add('BotLOG.log', encoding='utf-8')
     uvicorn.run(
         'api.app:BOT_ADMIN',
         host='web_api',

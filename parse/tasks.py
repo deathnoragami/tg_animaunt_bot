@@ -2,7 +2,7 @@ from database.request import AnimeDB
 from parse.server_parser import ServerParser
 import asyncio
 import traceback
-from loguru import logger
+from run_api import logger
 
 
 def upload_episodes(url: str, remote_path: str, title_id: int):

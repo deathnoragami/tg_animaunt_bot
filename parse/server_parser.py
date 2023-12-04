@@ -17,7 +17,7 @@ from database.request import AnimeDB
 from database.models import Title
 from string import ascii_letters
 from paramiko.sftp_attr import SFTPAttributes
-from settings import VIDEO_ROOT
+from config import VIDEO_ROOT
 from datetime import datetime as dt
 
 
@@ -27,6 +27,7 @@ class ServerParser:
     CHAT_ID = int(VIDEO_CHAT_ID)
     LOCAL_PATH = VIDEO_ROOT
     PORT = 22  # Убрать в енв
+    REMOTE_DIR = '/home/video/mp4/'
 
     def __init__(self, url: str, remote_path: str) -> None:
         self.url = url
@@ -59,13 +60,21 @@ class ServerParser:
             if "Тип:" in li_tag.get_text():
                 type_title = li_tag.get_text().strip().split(":")[1]
                 break
-        # добавить description
+        discription = soup.find('div', id='fdesc').text.strip()
+        while len(discription) > 800:
+            last_period_index = discription.rfind('.')
+            if last_period_index == -1:
+                discription = discription[:750]
+            else:
+                discription = discription[:last_period_index]
+
         kwargs = {
             'name': name,
             'url': self.url,
             'remote_path': self.remote_path,
             'image_url': image_url,
             'match_episode': second_number,
+            'description': discription,
         }
         title = await AnimeDB.add_title(**kwargs)
         self.parsed_title_id = title.id
@@ -97,6 +106,7 @@ class ServerParser:
     async def download_video_with_sftp(self) -> None:
         ssh = await self.__ssh_connect()
         sftp = ssh.open_sftp()
+        sftp.chdir(self.REMOTE_DIR)
         files_with_attributes = sftp.listdir_attr(self.remote_path)
         files_sorted_by_filename = sorted(
             files_with_attributes, key=lambda x: x.filename
@@ -128,6 +138,7 @@ class ServerParser:
     async def update_parser(self) -> None:
         ssh = await self.__ssh_connect()
         sftp = ssh.open_sftp()
+        sftp.chdir(self.REMOTE_DIR)
         files_with_attributes = sftp.listdir_attr(self.remote_path)
         files_sorted_by_st_mtime = sorted(
             files_with_attributes, key=lambda x: x.st_mtime
@@ -144,7 +155,9 @@ class ServerParser:
                 if last_update > title.last_update:
                     remote_file_path = f'{self.remote_path}/{file}'
                     local_file_path = f'{self.LOCAL_PATH}/{file}'
-                    number = float(os.path.splitext(file)[0].strip(ascii_letters))
+                    number = float(
+                        os.path.splitext(file)[0].strip(ascii_letters)
+                    )
                     sftp.get(remote_file_path, local_file_path)
                     if number in uploaded_episodes:
                         key = 'Update'

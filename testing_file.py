@@ -11,7 +11,7 @@ from database.request import AnimeDB
 import asyncio
 from string import ascii_letters
 from parse.server_parser import ServerParser
-from worker.tasks import update_parser
+from parse.tasks import update_parser
 
 
 async def upload_tg_channel(directory, title_id: int, number: int):
@@ -63,7 +63,7 @@ async def download_video_with_sftp(title_id: int):
 
 
 def parse_maunt():
-    link = "https://animaunt.org/9998-znak.html"
+    link = "https://animaunt.org/11245-ubiyca-goblinov-2.html"
     response = requests.get(link)
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -83,6 +83,9 @@ def parse_maunt():
         if "Тип:" in li_tag.get_text():
             type_title = li_tag.get_text().strip().split(":")[1]
             break
+    discription = soup.find('div', id='fdesc').text.strip()
+    print(discription)
+    return
     print(f"Название: {name}"\
         f"\nКартинка: {image_url}"\
         f"\nЭпизодов: {second_number}"\
@@ -99,6 +102,7 @@ def parse_maunt():
 
 
 if __name__ == '__main__':
-    update_parser()
+    parse_maunt()
+    # update_parser()
     # parser = ServerParser('https://animaunt.org/10591-rukovodstvo-soten-demonov-3.html', '/home/video/mp4/Руководство сотен демонов 3 | Bai Yao Pu 3rd Season')
     # asyncio.run(parser.update_parser())

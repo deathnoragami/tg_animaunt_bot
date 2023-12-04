@@ -13,7 +13,7 @@ class Title_search_cd(CallbackData, prefix='title_search'):
 class Episode_link(CallbackData, prefix='episode_link'):
     episode_id: str
     title_id: int
-    number_episode: int
+    number_episode: str
 
 
 class PaginationIntitle(CallbackData, prefix='pagination_in_title'):
@@ -31,7 +31,7 @@ class PaginationInEpisode(CallbackData, prefix='pagination_in_episode'):
 
 main = ReplyKeyboardMarkup(keyboard=[
     [
-        KeyboardButton(text='Поиск'),
+        KeyboardButton(text='🔍️Поиск'),
         KeyboardButton(text='Контакты')
     ], 
     [
@@ -60,7 +60,7 @@ def inline_kbb_search(
         for t, c in zip(text, callback_data)
 
     ]
-    builder.button(text='Отмена', callback_data='cansel')
+    # builder.button(text='Отмена', callback_data='cansel')
     builder.adjust(*sizes)
     return builder.as_markup(**kgargs)
 
@@ -82,7 +82,7 @@ def inline_kb_lvl_episode(
         btn_episode_id = episode_info[1]
         
     [
-        builder.button(text=t, callback_data=Episode_link(episode_id=c, title_id=title_id, number_episode=int(t)))
+        builder.button(text=t, callback_data=Episode_link(episode_id=c, title_id=title_id, number_episode=t))
         for t, c in zip(btn_text, btn_episode_id)
     ]
     
@@ -112,7 +112,7 @@ def inline_kb_episode(
     page_count: int,
     all_episode_info: list[str],
     title_id: int,
-    chose_episode: int = 1,
+    chose_episode: str,
     from_title: bool = False,
     current_page: int = 1, 
     **kgargs
@@ -133,7 +133,7 @@ def inline_kb_episode(
 
     
     [
-        builder.button(text=t, callback_data=Episode_link(episode_id=c, title_id=title_id, number_episode=int(t)))
+        builder.button(text=t, callback_data=Episode_link(episode_id=c, title_id=title_id, number_episode=t))
         for t, c in zip(btn_text, btn_episode_id)
     ]
     

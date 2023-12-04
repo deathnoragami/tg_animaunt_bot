@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  database:
+    image: postgres:16.1
+    hostname: database
+    container_name: database
+    volumes:
+      - bot_database_volume:/var/lib/postgresql/data/
+      - ./dump:/dump/
+    ports:
+      - 5432:5432
+    env_file: ./.env
   web_api:
     build:
       context: .
@@ -10,6 +20,8 @@ services:
     command: bash -c "python run_api.py"
     volumes:
       - ./:/app/
+    depends_on:
+      - database
   update_parser:
     build:
       context: .
@@ -19,9 +31,22 @@ services:
     command: bash -c "python run_parser.py"
     volumes:
       - ./:/app/
-  nginx_container:
+    depends_on:
+      - web_api
+  bot:
+    build:
+      context: .
+    hostname: bot
+    container_name: bot
+    env_file: ./.env
+    command: bash -c "python run.py"
+    volumes:
+      - ./:/app/
+    depends_on:
+      - web_api
+  nginx_server:
     image: nginx:1.25.3
-    container_name: nginx_container
+    container_name: nginx_server
     ports:
       - "80:80"
     volumes:
@@ -30,4 +55,4 @@ services:
     depends_on:
       - web_api
 volumes:
-  redis_broker_volume:
+  bot_database_volume:

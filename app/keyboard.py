@@ -37,7 +37,7 @@ main = ReplyKeyboardMarkup(keyboard=[
     [
         KeyboardButton(text='О боте')
     ]
-], resize_keyboard=True, one_time_keyboard=True)
+], resize_keyboard=True) #  one_time_keyboard=True
 
 
 def inline_kbb_search(

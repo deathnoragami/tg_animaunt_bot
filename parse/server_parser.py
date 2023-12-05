@@ -110,7 +110,7 @@ class ServerParser:
         name = soup.find("h1").text.strip()  # Название релища
         image_url = "https://animaunt.org" + soup.find("img").get("src")  # Ссылка на картинку
         image_data = requests.get(image_url).content
-        image_base64 = base64.b64encode(image_data).decode('utf-8')  # Это бинарный вид
+        image_base64 = base64.b64encode(image_data.encode('utf-8'))  # Это бинарный вид
         episodes_tag = soup.find_all('li', class_='vis-clear')
         for li_tag in episodes_tag:
             if 'Эпизоды:' in li_tag.get_text():
@@ -135,7 +135,7 @@ class ServerParser:
             'name': name,
             'url': self.url,
             'remote_path': self.remote_path,
-            'image_url': image_url,
+            'image_url': image_base64,
             'match_episode': second_number,
             'description': discription,
         }

@@ -164,3 +164,6 @@ cython_debug/
 #.idea/
 my_account_session.session
 my_account.session-journal
+app/__pycache__/__init__.cpython-311.pyc
+app/__pycache__/handlers.cpython-311.pyc
+app/__pycache__/keyboard.cpython-311.pyc

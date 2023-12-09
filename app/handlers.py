@@ -1,15 +1,24 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputFile, BufferedInputFile
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+<<<<<<< HEAD
 from aiogram import Bot, types
 from PIL import Image
+=======
+from aiogram import Bot
+
+from PIL import Image
+from io import BytesIO
+
+>>>>>>> 091577e08cb395d7c5ae2d89dd0162595912fb11
 import app.keyboard as kb
 import database.request as req
 from app.keyboard import Title_search_cd, Episode_link, PaginationIntitle, PaginationInEpisode
 from config import VIDEO_CHAT_ID
 from .keyboard import inline_kbb_search, inline_kb_lvl_episode, inline_kb_episode
+import base64
 
 router = Router()
 
@@ -66,6 +75,16 @@ async def callback_title(call: CallbackQuery, bot: Bot):
     title = await req.AnimeDB.get_title(int(call.data.split(':', 1)[1]))
     episode_list = await req.AnimeDB.get_episode_all(title.id)
     page_count = (len(episode_list[0]) - 1) // 12 + 1 
+
+    # decode image
+    decoded_image = base64.b64decode(title.image_url)
+    image = BytesIO(decoded_image)
+    image = Image.open(image, 'r')
+    buf = BytesIO()
+    image.save(buf, 'jpeg')
+    buf.seek(0)
+    # decode image
+
     if page_count > 1:
         episode_divided = []
         for page in range(page_count):
@@ -77,7 +96,11 @@ async def callback_title(call: CallbackQuery, bot: Bot):
     else:
         episode_divided = episode_list
     caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>{title.description}\n\nСмотреть на сайте {title.url}"
+<<<<<<< HEAD
     await call.message.answer_photo(photo=types.FSInputFile(title.image_url),
+=======
+    await call.message.answer_photo(photo=BufferedInputFile(buf.getvalue(), 'poster.jpeg'),
+>>>>>>> 091577e08cb395d7c5ae2d89dd0162595912fb11
                                     caption=caption,
                                     reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 
                                                                     page_count=page_count,

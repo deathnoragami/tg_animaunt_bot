@@ -120,9 +120,16 @@ class ServerParser:
     async def parse_maunt(self) -> Title:
         response = requests.get(self.url)
         soup = BeautifulSoup(response.text, 'html.parser')
+<<<<<<< HEAD
         name = soup.find("h1").text.strip()  # Название релиза
         image_url = "https://animaunt.org" + soup.find("img").get("src")
         image_url, media_root = self.save_small_image(image_url, name)
+=======
+        name = soup.find("h1").text.strip()  # Название релища
+        image_url = "https://animaunt.org" + soup.find("img").get("src")  # Ссылка на картинку
+        image_data = requests.get(image_url).content
+        image_base64 = base64.b64encode(image_data.encode('utf-8'))  # Это бинарный вид
+>>>>>>> 091577e08cb395d7c5ae2d89dd0162595912fb11
         episodes_tag = soup.find_all('li', class_='vis-clear')
         for li_tag in episodes_tag:
             if 'Эпизоды:' in li_tag.get_text():
@@ -146,7 +153,7 @@ class ServerParser:
             'name': name,
             'url': self.url,
             'remote_path': self.remote_path,
-            'image_url': image_url,
+            'image_url': image_base64,
             'match_episode': second_number,
             'description': discription,
             'media_root': media_root,

@@ -32,6 +32,7 @@ class AnimeDB(BaseDB):
                     Title.url,
                     Title.match_episode,
                     Title.last_episode,
+                    Title.media_root,
                 )
             ).filter(Title.complete.is_(False)).all()
             return titles
@@ -50,6 +51,7 @@ class AnimeDB(BaseDB):
                     Title.description,
                     Title.url,
                     Title.image_url,
+                    Title.media_root,
                 )
             ).filter(Title.id == title_id).first()
             return title

@@ -44,19 +44,6 @@ services:
       - ./:/app/
     depends_on:
       - web_api
-  stream:
-    build:
-      context: .
-    hostname: stream
-    container_name: stream
-    env_file: ./.env
-    command: bash -c "streamlit run api_ui_main.py"
-    ports:
-      - 8501:8501
-    volumes:
-      - ./:/app/
-    depends_on:
-      - web_api
   nginx_server:
     image: nginx:1.25.3
     container_name: nginx_server

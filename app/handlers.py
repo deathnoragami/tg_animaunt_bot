@@ -3,8 +3,8 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram import Bot
-
+from aiogram import Bot, types
+from PIL import Image
 import app.keyboard as kb
 import database.request as req
 from app.keyboard import Title_search_cd, Episode_link, PaginationIntitle, PaginationInEpisode
@@ -77,7 +77,7 @@ async def callback_title(call: CallbackQuery, bot: Bot):
     else:
         episode_divided = episode_list
     caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>{title.description}\n\nСмотреть на сайте {title.url}"
-    await call.message.answer_photo(photo=title.image_url,
+    await call.message.answer_photo(photo=types.FSInputFile(title.image_url),
                                     caption=caption,
                                     reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 
                                                                     page_count=page_count,

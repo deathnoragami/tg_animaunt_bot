@@ -11,21 +11,22 @@ from config import (
 )
 from bs4 import BeautifulSoup
 import requests
-import base64
 import re
 from database.request import AnimeDB
 from database.models import Title
 from string import ascii_letters
 from paramiko.sftp_attr import SFTPAttributes
-from config import VIDEO_ROOT
+from config import MEDIA_ROOT
 from datetime import datetime as dt
+from PIL import Image
+from io import BytesIO
+from slugify import slugify
 
 
 class ServerParser:
 
     CLIENT = Client("my_account", int(API_ID), API_HASH)
     CHAT_ID = int(VIDEO_CHAT_ID)
-    LOCAL_PATH = VIDEO_ROOT
     PORT = 22  # Убрать в енв
     REMOTE_DIR = '/home/video/mp4/'
 
@@ -33,7 +34,7 @@ class ServerParser:
         self.url = url
         self.remote_path = remote_path
         self.parsed_title_id: int = None
-        os.makedirs(self.LOCAL_PATH, exist_ok=True)
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
 
     @staticmethod
     def __trailer_check(file: str) -> bool:
@@ -93,6 +94,18 @@ class ServerParser:
                     pass
         return files_sorted_by_filename
 
+    def save_small_image(self, url: str, name: str) -> tuple[str, str]:
+        folder = os.path.join(MEDIA_ROOT, slugify(name, separator='_'))
+        os.makedirs(folder, exist_ok=True)
+        width = 666
+        path = os.path.join(folder, f'poster{os.path.splitext(url)[-1]}')
+        image = Image.open(BytesIO(requests.get(url).content))
+        ratio = width / float(image.size[0])
+        height = int(float(image.size[1]) * float(ratio))
+        image = image.resize((width, height))
+        image.save(path)
+        return path, folder
+
     async def __server_connect(self):
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -107,10 +120,9 @@ class ServerParser:
     async def parse_maunt(self) -> Title:
         response = requests.get(self.url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        name = soup.find("h1").text.strip()  # Название релища
-        image_url = "https://animaunt.org" + soup.find("img").get("src")  # Ссылка на картинку
-        image_data = requests.get(image_url).content
-        image_base64 = base64.b64encode(image_data).decode('utf-8')  # Это бинарный вид
+        name = soup.find("h1").text.strip()  # Название релиза
+        image_url = "https://animaunt.org" + soup.find("img").get("src")
+        image_url, media_root = self.save_small_image(image_url, name)
         episodes_tag = soup.find_all('li', class_='vis-clear')
         for li_tag in episodes_tag:
             if 'Эпизоды:' in li_tag.get_text():
@@ -130,7 +142,6 @@ class ServerParser:
                 discription = discription[:750]
             else:
                 discription = discription[:last_period_index]
-
         kwargs = {
             'name': name,
             'url': self.url,
@@ -138,9 +149,11 @@ class ServerParser:
             'image_url': image_url,
             'match_episode': second_number,
             'description': discription,
+            'media_root': media_root,
         }
         title = await AnimeDB.add_title(**kwargs)
         self.parsed_title_id = title.id
+        self.media_root = media_root
         return title
 
     async def upload_tg_channel(
@@ -189,7 +202,7 @@ class ServerParser:
             if self.__trailer_check(file):
                 continue
             remote_file_path = f'{self.remote_path}/{file}'
-            local_file_path = f'{self.LOCAL_PATH}/{file}'
+            local_file_path = f'{self.media_root}/{file}'
             number, view_number, caption = self.__make_number(file)
             try:
                 next_number, *_ = self.__make_number(
@@ -226,7 +239,7 @@ class ServerParser:
             try:
                 if last_update > title.last_update:
                     remote_file_path = f'{self.remote_path}/{file}'
-                    local_file_path = f'{self.LOCAL_PATH}/{file}'
+                    local_file_path = f'{self.media_root}/{file}'
                     number, view_number, caption = self.__make_number(file)
                     self.sftp.get(remote_file_path, local_file_path)
                     if number in uploaded_episodes:

@@ -21,7 +21,14 @@ async def add_title(
         server_parser = ServerParser(url, remote_path)
         title = await server_parser.parse_maunt()
         title_id = title.id
-        background_tasks.add_task(upload_episodes, url, remote_path, title_id)
+        media_root = title.media_root
+        background_tasks.add_task(
+            upload_episodes,
+            url,
+            remote_path,
+            title_id,
+            media_root
+        )
         return title
     except Exception:
         logger.error(f'Ошибка: {traceback.format_exc()}')

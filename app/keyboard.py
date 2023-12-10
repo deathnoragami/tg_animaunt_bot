@@ -37,7 +37,7 @@ main = ReplyKeyboardMarkup(keyboard=[
     [
         KeyboardButton(text='О боте')
     ]
-], resize_keyboard=True, one_time_keyboard=True)
+], resize_keyboard=True) #  one_time_keyboard=True
 
 
 def inline_kbb_search(
@@ -112,9 +112,9 @@ def inline_kb_episode(
     page_count: int,
     all_episode_info: list[str],
     title_id: int,
-    chose_episode: str,
+    chose_episode: str = '1',
     from_title: bool = False,
-    current_page: int = 1, 
+    current_page: int = 1,
     **kgargs
     ) -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
@@ -122,7 +122,7 @@ def inline_kb_episode(
    
     if from_title:
         if page_count > 1:
-            current_page = math.floor(chose_episode/24) + 1
+            current_page = math.floor(int(chose_episode)/24) + 1
             all_episode_info = all_episode_info[current_page-1]
         btn_text = all_episode_info[0]
         btn_episode_id = all_episode_info[1]

@@ -3,16 +3,12 @@ from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputFile, Bu
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-<<<<<<< HEAD
 from aiogram import Bot, types
-from PIL import Image
-=======
-from aiogram import Bot
 
 from PIL import Image
 from io import BytesIO
 
->>>>>>> 091577e08cb395d7c5ae2d89dd0162595912fb11
+# import defoult_caption_msg as dcm
 import app.keyboard as kb
 import database.request as req
 from app.keyboard import Title_search_cd, Episode_link, PaginationIntitle, PaginationInEpisode
@@ -25,11 +21,15 @@ router = Router()
 class SearchState(StatesGroup):
     WaitingForInput = State()
 
-
+@router.message(Command("menu"))
 @router.message(CommandStart())
 async def cmd_start(message: Message, bot: Bot):
-    text = f'Тут нужно ввести приветственный текст'
-    await message.answer(text='Привет.', reply_markup=kb.main)  # TODO: стартовое сообщение
+    START_CAPTION=f"""Привет, я бот *Animaunt*. Тут ты можешь *найти, скачать и посмотреть* релизы он нашей команды.
+Сейчас бот находится на этапе *тестирования*, и мы разработчики ждем от ваc фидбэка.
+
+Бот будет развиваться и дальше будут добавляться больше функций!
+"""
+    await message.answer(text=START_CAPTION, reply_markup=kb.main)  # TODO: стартовое сообщение
 
 
 @router.message(F.text == "Контакты")
@@ -41,7 +41,7 @@ async def cmd_contacts(message: Message):
 @router.message(F.text.lower() == "🔍️поиск")
 async def search_btn(message: Message, state=FSMContext):
     await message.answer(f"🔍️Введите запрос\n\n" \
-                        f"Пример:\n<code>стоун</code>\n<code>Магическая 2</code>")
+                        f"Пример:\n`стоун`\n`Магическая 2`")
     await state.set_state(SearchState.WaitingForInput)
 
 
@@ -54,12 +54,12 @@ async def search_input(message: Message, bot: Bot, state=FSMContext, ):
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     title = await req.AnimeDB.search_title(msg['WaitingForInput'])
     if len(title[0]) == 0:
-        await message.answer(text=f'По вашему запросу <b>"{message.text}"</b> ничего не найдено'\
+        await message.answer(text=f'По вашему запросу *"{message.text}"* ничего не найдено'\
                                   f'\nПоиск заново /find')
         await state.clear()
     else:
         await message.answer(f"🤔Вот что я нашел по твоему запросу:"\
-                             f"\n<b>Отменить выбор</b> /start, <b>поиск заново</b> /find",
+                             f"\n*Отменить выбор* /start, *поиск заново* /find",
                             reply_markup=inline_kbb_search(
                                 text=title[0],
                                 callback_data=title[1]
@@ -71,20 +71,9 @@ async def search_input(message: Message, bot: Bot, state=FSMContext, ):
 @router.callback_query(Title_search_cd.filter())
 async def callback_title(call: CallbackQuery, bot: Bot):
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-    #TODO: call.data.split(':', 1)[1] это айди тайтла, по нему искать фулл инфу о тайтле
     title = await req.AnimeDB.get_title(int(call.data.split(':', 1)[1]))
     episode_list = await req.AnimeDB.get_episode_all(title.id)
     page_count = (len(episode_list[0]) - 1) // 12 + 1 
-
-    # decode image
-    decoded_image = base64.b64decode(title.image_url)
-    image = BytesIO(decoded_image)
-    image = Image.open(image, 'r')
-    buf = BytesIO()
-    image.save(buf, 'jpeg')
-    buf.seek(0)
-    # decode image
-
     if page_count > 1:
         episode_divided = []
         for page in range(page_count):
@@ -92,18 +81,20 @@ async def callback_title(call: CallbackQuery, bot: Bot):
             end_index = (page+1) * 12
             current_page_episodes = episode_list[0][start_index:end_index]
             current_page_episodes_id = episode_list[1][start_index:end_index]
-            episode_divided.append([current_page_episodes,current_page_episodes_id]) # 
+            episode_divided.append([current_page_episodes,current_page_episodes_id]) 
     else:
         episode_divided = episode_list
-    caption = f"<b>Название:</b> {title.name}\n\nВсего серий: <b>{title.match_episode}</b>\n\n<b>Описание:</b>{title.description}\n\nСмотреть на сайте {title.url}"
-    await call.message.answer_photo(photo=types.FSInputFile(title.image_url),
-
-                                    caption=caption,
-                                    reply_markup=inline_kb_lvl_episode(title_id=int(title.id), 
-                                                                    page_count=page_count,
-                                                                    all_episode_info=episode_divided,
-                                                                    current_page=page_count                                                              
-                                                                    ))
+    caption = f"*Название:* _{title.name}_\n\n*Всего серий:* _{title.match_episode}_\n\n*Описание:* _{title.description}_ \n\nСмотреть на сайте [AniMaunt.org]({title.url})"
+    await call.message.answer_photo(
+        photo=types.FSInputFile(title.image_url),
+        caption=caption,
+        reply_markup=inline_kb_lvl_episode(
+            title_id=int(title.id),
+            page_count=page_count,
+            all_episode_info=episode_divided,
+            current_page=page_count,
+        )
+    )
 
 @router.callback_query(PaginationIntitle.filter())
 async def change_episode_title(call: CallbackQuery):
@@ -138,8 +129,8 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     episode = await req.AnimeDB.get_episode(int(data[1]))
     episode_list = await req.AnimeDB.get_episode_all(int(data[2]))
-    title = await req.AnimeDB.get_title(int(data[2])) # TODO: Передать название тайтла в калбеках
-    page_count = (len(episode_list[0]) - 1) // 24 + 1 # до 24 серий.
+    title = await req.AnimeDB.get_title(int(data[2])) 
+    page_count = (len(episode_list[0]) - 1) // 24 + 1
     if page_count > 1:
         episode_divided =[]
         for page in range(page_count):
@@ -150,14 +141,11 @@ async def callback_episode(call: CallbackQuery, bot: Bot):
             episode_divided.append([current_page_episodes,current_page_episodes_id])
     else:
         episode_divided = episode_list
-    caption = f"{title.name} - {episode.caption}.\n\n"
-    # await bot.copy_message(chat_id=message.chat.id, from_chat_id=VIDEO_CHAT_ID, message_id=49, caption="Серия такая, и то такое вот")
-    # image = URLInputFile("https://fon.litrelax.ru/uploads/posts/2023-01/1673218763_foni-club-p-oboi-anime-dozhd-4k-1.jpg", filename="prev.jpg")
-    
-    await bot.copy_message(chat_id=call.message.chat.id, 
-                           from_chat_id=VIDEO_CHAT_ID, 
+    caption = f"{title.name} - {episode.caption}."
+    await bot.copy_message(chat_id=call.message.chat.id,
+                           from_chat_id=VIDEO_CHAT_ID,
                            caption=caption,
-                           message_id=episode.video_msg_id, 
+                           message_id=episode.video_msg_id,
                            reply_markup=inline_kb_episode(page_count=page_count,
                                                             chose_episode=data[3],
                                                             all_episode_info=episode_divided,
@@ -184,4 +172,10 @@ async def change_episode_episode(call: CallbackQuery, bot: Bot):
                                                                         all_episode_info=episode_divided,
                                                                         title_id=int(data[1]),
                                                                         current_page=current_page))
-    
+
+
+@router.message()
+async def non_command(message: Message):
+    await message.answer(f"🤔Я не знаю такой команды. \n*Главное меню* /menu")
+
+# ########### Другие ТЕСТ функции ############

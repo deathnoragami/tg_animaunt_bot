@@ -101,7 +101,7 @@ class AnimeDB(BaseDB):
                 load_only(Title.id, Title.name)
                 ).filter(func.lower(Title.name).like(
                     f'%{query.lower()}%')
-                ).all()[:7]
+                ).order_by(Title.name).all()[:7]
             names = [i.name for i in result]
             indexes = [str(i.id) for i in result]
             return [names, indexes]

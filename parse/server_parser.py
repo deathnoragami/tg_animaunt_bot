@@ -7,7 +7,8 @@ from config import (
     ADRESS_SFTP,
     API_HASH,
     API_ID,
-    VIDEO_CHAT_ID
+    VIDEO_CHAT_ID,
+    BANNER,
 )
 from bs4 import BeautifulSoup
 import requests
@@ -147,7 +148,7 @@ class ServerParser:
             'name': name,
             'url': self.url,
             'remote_path': self.remote_path,
-            'image_url': image_base64,
+            'image_url': image_url,
             'match_episode': second_number,
             'description': discription,
             'media_root': media_root,
@@ -171,7 +172,8 @@ class ServerParser:
             chat_id=self.CHAT_ID,
             video=directory,
             width=1280,
-            height=720
+            height=720,
+            thumb=BANNER,
         )
         print(f"Загружен в тг {directory}")
         os.remove(directory)
